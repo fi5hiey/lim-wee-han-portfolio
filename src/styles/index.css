@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Palette: sumi charcoal, rice paper, muted crimson, dark moss, silver */
+:root {
+  --night: 17 17 16;
+  --coal: 26 26 24;
+  --sumi: 40 40 37;
+  --paper: 237 231 220;
+  --ash: 158 154 146;
+  --crimson: 168 50 45;
+  --crimson-hi: 200 74 64;
+  --moss: 47 59 51;
+  --silver: 169 171 168;
+  color-scheme: dark;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+html { scroll-behavior: smooth; scroll-padding-top: calc(env(safe-area-inset-top, 0px) + 24px); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+*, *::before, *::after { box-sizing: inherit; }
+body {
+  @apply bg-night font-sans text-paper antialiased;
+  overflow-x: hidden;
+  font-feature-settings: 'palt';
+}
+img, video { display: block; max-width: 100%; }
+::selection { background: rgb(var(--crimson)); color: rgb(var(--paper)); }
+:focus-visible { outline: 1.5px solid rgb(var(--crimson-hi)); outline-offset: 4px; }
+
+/* Rice-paper grain over everything, very faint */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .93 0 0 0 0 .9 0 0 0 0 .86 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23p)'/%3E%3C/svg%3E");
+}
+
+@layer components {
+  .shell { @apply mx-auto w-full max-w-[90rem] px-6 sm:px-10 lg:px-24; }
+  .label { @apply font-sans text-[0.74rem] font-medium uppercase tracking-[0.18em] text-ash sm:text-[0.7rem] sm:tracking-label; }
+  /* Gloock ships one weight; never faux-bold it */
+  .display { @apply font-serif font-normal; letter-spacing: -0.012em; line-height: 0.92; }
+  .vertical { font-family: theme('fontFamily.brush'); writing-mode: vertical-rl; text-orientation: upright; letter-spacing: 0.35em; }
+  .hairline { @apply border-paper/10; }
+  .link-line { position: relative; }
+  .link-line::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0; bottom: -0.08em;
+    height: 1px;
+    background: currentColor;
+    transform: scaleX(0);
+    transform-origin: right;
+    transition: transform 0.5s cubic-bezier(.16,1,.3,1);
+  }
+  .link-line:hover::after, .link-line:focus-visible::after { transform: scaleX(1); transform-origin: left; }
+}
+
+/* Gentle drift for floating elements */
+@keyframes drift { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+.drift { animation: drift 6s ease-in-out infinite; }
+
+@keyframes spin-slow { to { transform: rotateX(-22deg) rotateY(360deg); } }
+@keyframes ripple { 0% { transform: scale(.2); opacity: .7; } 100% { transform: scale(1.6); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .drift, .spin, .ripple { animation: none !important; }
+}
+
+/* Phones: skip the full-screen blended grain layer, it costs frames while scrolling */
+@media (pointer: coarse) {
+  body::before { display: none; }
+}
+
+@media (pointer: fine) {
+  html.has-cursor, html.has-cursor * { cursor: none !important; }
+}
+
+/* Lenis smooth scroll */
+html.lenis, html.lenis body { height: auto; }
+.lenis.lenis-smooth { scroll-behavior: auto !important; }
+.lenis.lenis-smooth [data-lenis-prevent] { overscroll-behavior: contain; }
+.lenis.lenis-stopped { overflow: clip; }
+
+/* Click ripple from the custom cursor */
+.ink-ripple {
+  position: fixed;
+  z-index: 119;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  border-radius: 9999px;
+  border: 1.5px solid rgb(var(--crimson-hi));
+  pointer-events: none;
+}
+
+
+/* ------------------------------------------------------------------
+   Rice-paper sections: remap the palette so every existing utility
+   (text-paper, bg-night, border-paper/10…) flips to ink on paper.
+------------------------------------------------------------------- */
+.on-paper {
+  --paper: 28 26 23;
+  --night: 236 229 216;
+  --coal: 236 229 216;
+  --sumi: 222 213 198;
+  --ash: 104 98 89;
+  --silver: 90 88 84;
+  --crimson-hi: 168 50 45;
+  color: rgb(var(--paper));
+  background-color: rgb(var(--night));
+  position: relative;
+  isolation: isolate;
+}
+/* Washi fibres: long soft strands plus fine grain, multiplied into the paper */
+.on-paper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.012 .09' numOctaves='3' seed='7'/%3E%3CfeColorMatrix values='0 0 0 0 .55 0 0 0 0 .5 0 0 0 0 .42 0 0 0 .35 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23f)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 .4 0 0 0 0 .36 0 0 0 0 .3 0 0 0 .18 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 15% 0%, rgba(255,250,240,.7), transparent 55%),
+    radial-gradient(ellipse at 100% 100%, rgba(150,128,100,.18), transparent 60%);
+}
+
+/* ------------------------------------------------------------------
+   Atmospheres
+------------------------------------------------------------------- */
+/* Genkō yōshi: the squared manuscript paper Japanese essays are written on */
+.bg-genko {
+  background-image:
+    linear-gradient(rgb(var(--paper) / .05) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(var(--paper) / .05) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0 58px, rgb(var(--paper) / .045) 58px 60px, transparent 60px 72px);
+  background-size: 48px 48px, 48px 48px, 72px 100%;
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 60% 45%, #000 30%, transparent 75%);
+  mask-image: radial-gradient(ellipse 70% 60% at 60% 45%, #000 30%, transparent 75%);
+}
+/* Sumi ink wash: soft pooled pigment */
+.bg-inkwash {
+  background:
+    radial-gradient(ellipse 45% 35% at 18% 30%, rgb(var(--moss) / .55), transparent 70%),
+    radial-gradient(ellipse 35% 30% at 85% 75%, rgb(var(--crimson) / .10), transparent 70%),
+    radial-gradient(ellipse 60% 50% at 50% 110%, rgb(0 0 0 / .6), transparent 70%);
+  filter: blur(8px);
+}
+/* Seigaiha: overlapping wave scales */
+.bg-seigaiha {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='40' viewBox='0 0 80 40'%3E%3Cg fill='none' stroke='%23ede7dc' stroke-width='1'%3E%3Cpath d='M0 40a40 40 0 0 1 80 0M8 40a32 32 0 0 1 64 0M16 40a24 24 0 0 1 48 0M24 40a16 16 0 0 1 32 0M-40 20a40 40 0 0 1 80 0M-32 20a32 32 0 0 1 64 0M-24 20a24 24 0 0 1 48 0M40 20a40 40 0 0 1 80 0M48 20a32 32 0 0 1 64 0M56 20a24 24 0 0 1 48 0'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 40px;
+  opacity: .05;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 60%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 25%, #000 60%, transparent);
+}
+/* Rising sun behind the final call to action */
+.bg-sunrise {
+  background:
+    radial-gradient(ellipse 55% 45% at 78% 108%, rgb(var(--crimson) / .55), rgb(var(--crimson) / .12) 45%, transparent 70%),
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgb(var(--moss) / .35), transparent 70%);
+}
